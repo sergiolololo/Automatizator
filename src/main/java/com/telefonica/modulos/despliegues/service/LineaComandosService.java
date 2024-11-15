@@ -14,9 +14,11 @@ public class LineaComandosService {
     private ChannelSftp channelSftp = null;
     private ChannelExec channelExec = null;
     private final LineaComandosBean lineaComandosBean;
+    private final PanelConsola panelConsola;
 
-    public LineaComandosService(LineaComandosBean lineaComandosBean) {
+    public LineaComandosService(LineaComandosBean lineaComandosBean, PanelConsola panelConsola) {
         this.lineaComandosBean = lineaComandosBean;
+        this.panelConsola = panelConsola;
     }
 
     private void crearConexion(String host, String user, String password) throws JSchException {
@@ -53,14 +55,14 @@ public class LineaComandosService {
                 String rutaActivoOrigen = directorioLocalFicheros + "/" + activo;
                 String rutaDestino = lineaComandosBean.getDirectorioConstruccion() + "/" + activo.substring(0, activo.lastIndexOf("/"));
 
-                //crearDirectorioEnMaquinaSiNoExiste(rutaDestino);
+                crearDirectorioEnMaquinaSiNoExiste(rutaDestino);
 
-                //channelSftp.put(rutaActivoOrigen, rutaDestino);
+                channelSftp.put(rutaActivoOrigen, rutaDestino);
                 System.out.println("Fichero añadido: " + lineaComandosBean.getDirectorioConstruccion() + "/" + activo);
-                PanelConsola.addText("Fichero añadido: " + lineaComandosBean.getDirectorioConstruccion() + "/" + activo + "\n");
+                panelConsola.addText("Fichero añadido: " + lineaComandosBean.getDirectorioConstruccion() + "/" + activo + "\n");
             }
         } catch (Exception e) {
-            PanelConsola.addText("ERROR - " + e.getMessage() + "\n");
+            panelConsola.addText("ERROR - " + e.getMessage() + "\n");
             throw e;
         } finally {
             if (channelSftp != null) {
@@ -89,7 +91,7 @@ public class LineaComandosService {
                             channelSftp.cd(folder);
                             directorio.append(folder).append("/");
                             System.out.println("Directorio creado: " + directorio);
-                            PanelConsola.addText("Directorio creado: " + directorio + "\n");
+                            panelConsola.addText("Directorio creado: " + directorio + "\n");
                         }
                     }
                 }
@@ -110,14 +112,14 @@ public class LineaComandosService {
 
     private void moverWarCarpetaLocal(String directorioLocalFicheros) throws Exception {
         try {
-            PanelConsola.addText("Moviendo war del portal de la máquina a la carpeta local...\n");
+            panelConsola.addText("Moviendo war del portal de la máquina a la carpeta local...\n");
             crearConexionSFTP(lineaComandosBean.getMaquinaTramitador().getHost(), lineaComandosBean.getMaquinaTramitador().getUser(),
                     lineaComandosBean.getMaquinaTramitador().getPassword());
             String rutaActivoOrigen = lineaComandosBean.getMaquinaPortal().getDirectorioWar();
             channelSftp.get(rutaActivoOrigen, directorioLocalFicheros);
-            PanelConsola.addText("Se ha movido el war del portal de la máquina a la carpeta local: " + directorioLocalFicheros + "\n");
+            panelConsola.addText("Se ha movido el war del portal de la máquina a la carpeta local: " + directorioLocalFicheros + "\n");
         } catch (Exception e) {
-            PanelConsola.addText("ERROR - " + e.getMessage() + "\n");
+            panelConsola.addText("ERROR - " + e.getMessage() + "\n");
             throw e;
         } finally {
             if (channelSftp != null) {
@@ -135,7 +137,7 @@ public class LineaComandosService {
             String rutaLocalWar = directorioLocalFicheros + lineaComandosBean.getMaquinaPortal().getDirectorioWar().substring(lineaComandosBean.getMaquinaPortal().getDirectorioWar().lastIndexOf("/"));
             String nombreWar = lineaComandosBean.getMaquinaPortal().getDirectorioDejarWar() + "/" + rutaLocalWar.substring(rutaLocalWar.lastIndexOf("/") + 1);
             String nombreWarAntiguo = nombreWar + ".backup";
-            PanelConsola.addText("Renombrando war existente como backup...\n");
+            panelConsola.addText("Renombrando war existente como backup...\n");
 
             try{
                 channelSftp.rm(nombreWarAntiguo);
@@ -147,11 +149,11 @@ public class LineaComandosService {
             }catch(Exception e){
                 System.out.println("No existe war, por eso no se crea backup");
             }
-            PanelConsola.addText("Moviendo war del portal de la carpeta local a la máquina...\n");
+            panelConsola.addText("Moviendo war del portal de la carpeta local a la máquina...\n");
             channelSftp.put(rutaLocalWar, lineaComandosBean.getMaquinaPortal().getDirectorioDejarWar());
-            PanelConsola.addText("Se ha movido el war del portal de la carpeta local a la máquina: " + lineaComandosBean.getMaquinaPortal().getDirectorioDejarWar() + "\n");
+            panelConsola.addText("Se ha movido el war del portal de la carpeta local a la máquina: " + lineaComandosBean.getMaquinaPortal().getDirectorioDejarWar() + "\n");
         } catch (Exception e) {
-            PanelConsola.addText("ERROR - " + e.getMessage() + "\n");
+            panelConsola.addText("ERROR - " + e.getMessage() + "\n");
             throw e;
         } finally {
             if (channelSftp != null) {
@@ -165,20 +167,20 @@ public class LineaComandosService {
 
     public void desplegarYReiniciar(boolean desplegarSSNN, boolean desplegarPortal) throws Exception {
         if(desplegarSSNN){
-            PanelConsola.addText("Desplegando ficheros SSN/fases/tramitador y reiniciando servidores...\n");
+            panelConsola.addText("Desplegando ficheros SSN/fases/tramitador y reiniciando servidores...\n");
             // desplegar
             ejecutarScrips(1, lineaComandosBean.getMaquinaTramitador().getDirectorioScriptDespliegue(), lineaComandosBean.getMaquinaTramitador().getNombreScriptsDespliegue());
             // reiniciar
             ejecutarScrips(1, lineaComandosBean.getMaquinaTramitador().getDirectorioScriptDespliegue(), lineaComandosBean.getMaquinaTramitador().getNombreScriptsArranque());
-            PanelConsola.addText("Ficheros SSN/fases/tramitador desplegados y servidores reiniciados\n");
+            panelConsola.addText("Ficheros SSN/fases/tramitador desplegados y servidores reiniciados\n");
         }
         if(desplegarPortal){
-            PanelConsola.addText("Desplegando ficheros portal y reiniciando servidores...\n");
+            panelConsola.addText("Desplegando ficheros portal y reiniciando servidores...\n");
             // desplegar
             ejecutarScrips(2, lineaComandosBean.getMaquinaPortal().getDirectorioScriptDespliegue(), lineaComandosBean.getMaquinaPortal().getNombreScriptsDespliegue());
             // reiniciar
             ejecutarScrips(2, lineaComandosBean.getMaquinaPortal().getDirectorioScriptDespliegue(), lineaComandosBean.getMaquinaPortal().getNombreScriptsArranque());
-            PanelConsola.addText("Ficheros portal desplegados y servidores reiniciados\n");
+            panelConsola.addText("Ficheros portal desplegados y servidores reiniciados\n");
         }
     }
 
@@ -189,7 +191,7 @@ public class LineaComandosService {
         for (String script : scriptsDespliegue) {
             if (!script.isEmpty()) {
                 String comando2 = " && ./"+script;
-                //ejecutarComando(comando1 + comando2, opcion);
+                ejecutarComando(comando1 + comando2, opcion);
             }
         }
     }
@@ -205,7 +207,7 @@ public class LineaComandosService {
             channelExec.connect();
             pintarTrazas();
         } catch (Exception e) {
-            PanelConsola.addText("ERROR - " + e.getMessage() + "\n");
+            panelConsola.addText("ERROR - " + e.getMessage() + "\n");
             throw e;
         } finally {
             if (channelExec != null) {
@@ -227,7 +229,7 @@ public class LineaComandosService {
                 if(i < 0)break;
                 String text = new String(tmp, 0, i);
                 System.out.print(text);
-                PanelConsola.addText(text);
+                panelConsola.addText(text);
             }
             if(channelExec.isClosed()){
                 exitStatus = channelExec.getExitStatus();

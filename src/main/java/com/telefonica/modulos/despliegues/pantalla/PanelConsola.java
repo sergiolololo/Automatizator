@@ -12,9 +12,9 @@ public class PanelConsola extends JDialog {
 	@Serial
 	private static final long serialVersionUID = 1L;
 	
-	public static JTextArea textTA;
+	public JTextArea textTA;
 	static JScrollPane sp;
-	public static JButton closeBtn;
+	public JButton closeBtn;
 	private final JCheckBox lineWrapChk;
 
 	public PanelConsola(ApplicationContext appContext) {
@@ -33,7 +33,6 @@ public class PanelConsola extends JDialog {
 		textTA = new JTextArea();
 		textTA.setFont(new Font("Arial", Font.PLAIN, 12));
 		textTA.setEditable(false);
-		//textTA.append("Empieza el proceso de análisis de dependencias......\n\n");
 		sp = new JScrollPane(textTA);
 		getContentPane().add(sp, BorderLayout.CENTER);
 		
@@ -55,7 +54,7 @@ public class PanelConsola extends JDialog {
 		setLocationRelativeTo(null);
 	}
 	
-	public static void addText(String text) {
+	public void addText(String text) {
 		textTA.append(text);
 		sp.getVerticalScrollBar().setValue(sp.getVerticalScrollBar().getMaximum());
 		sp.getHorizontalScrollBar().setValue(sp.getHorizontalScrollBar().getMinimum());

@@ -1,7 +1,6 @@
 package com.telefonica.modulos.despliegues.utils;
 
 import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -9,13 +8,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-@Component
 public class FileUtil {
 	
-	public String seleccionarDirectorioOFichero(int fileSelectionMode) {
+	public String seleccionarDirectorioOFichero(int fileSelectionMode, String directorioRaiz) {
 		JFileChooser chooser = new JFileChooser();
 	    chooser.setAcceptAllFileFilterUsed(false);
 	    chooser.setFileSelectionMode(fileSelectionMode);
+		chooser.setCurrentDirectory(new File(directorioRaiz));
 	    
 	    String directorio = "";
 	    if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
@@ -40,4 +39,16 @@ public class FileUtil {
 	        workbook.close();
 	    }
 	}
+
+	public String crearDirectorio(String directorio) {
+		try {
+			File dir = new File(directorio);
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+            return dir.getCanonicalPath();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

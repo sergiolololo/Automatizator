@@ -14,7 +14,7 @@ public class FuentesService {
     @Autowired
     private GitService gitService;
 
-    public void copiaFuentes(String directorioOrigen, String directorioDestino, List<String> listaActivos) {
+    public void copiaFuentes(String directorioOrigen, String directorioDestino, List<String> listaActivos, PanelConsola panelConsola) {
         for (String activoAux : listaActivos) {
             String activo = activoAux.replace("Modificado - ", "").replace("Nuevo - ", "");
             String directory = directorioDestino + "/" + activo.substring(0, activo.lastIndexOf("/"));
@@ -27,7 +27,7 @@ public class FuentesService {
                         new File(directorioDestino + "/" + activo).toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                 System.out.println("Copiado en: " + directorioDestino + "/" + activo);
             } catch (IOException e) {
-                PanelConsola.addText("ERROR - " + e.getMessage() + "\n");
+                panelConsola.addText("ERROR - " + e.getMessage() + "\n");
             }
         }
     }
@@ -42,9 +42,9 @@ public class FuentesService {
         String line = br.readLine();
         while (line != null) {
             line = line.trim();
-            if(line.contains("\\") && line.contains(anagrama)) {
+            if(line.contains("/") && line.contains(anagrama)) {
                 String estado = line.trim().split(",")[0];
-                String archivo = line.trim().split(",")[1].substring(line.trim().split(",")[1].indexOf("\\") + 1);
+                String archivo = line.trim().split(",")[1].substring(line.trim().split(",")[1].indexOf("/") + 1);
                 listaActivos.add(estado + " - " + archivo);
             }
             line = br.readLine();

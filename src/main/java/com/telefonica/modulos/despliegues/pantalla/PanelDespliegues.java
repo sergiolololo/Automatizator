@@ -5,8 +5,10 @@ import com.telefonica.modulos.despliegues.beans.MaquinaBean;
 import com.telefonica.modulos.despliegues.service.FuentesService;
 import com.telefonica.modulos.despliegues.service.GitService;
 import com.telefonica.modulos.despliegues.service.LineaComandosService;
+import com.telefonica.modulos.despliegues.utils.Constantes;
 import com.telefonica.modulos.despliegues.utils.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +25,8 @@ import java.util.*;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.border.BevelBorder;
 import java.util.List;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 @SuppressWarnings({"rawtypes" })
 @Component
@@ -31,16 +35,16 @@ public class PanelDespliegues extends JPanel {
 	@Autowired
 	private ApplicationContext appContext;
 	@Autowired
-	private FileUtil fileUtil;
-	@Autowired
 	private FuentesService fuentesService;
+	private final FileUtil fileUtil = new FileUtil();
 
 	private final JComboBox<String> cmbAnagramas;
 	private final JTextField txtDirectorioLocalRepos;
 	private final JTextField txtDirectorioActivosModificados;
 	private final JTextField txtPrimerCommit, txtUltimoCommit, txtRutaFicheroActivosModificados;
 
-	private final JButton btnCopiarFicheros, btnCompilar, btnDesplegar, btnCopiarResult, btnAbrirConsola;
+	private final JButton btnCopiarFicheros, btnCompilar, btnDesplegar, btnAbrirConsola;
+	private JButton btnCopiarResult;
 	private JButton btnCompilarResult;
 	private JButton btnDesplegarResult;
 
@@ -49,28 +53,37 @@ public class PanelDespliegues extends JPanel {
 
 	private final JLabel lblNumFicheros;
 	private PanelConsola panelConsola;
+	private PanelHistoricoLogs panelHistoricoLogs;
 
 	private final JTable tablaActivos;
 
+	private final String rutaLocalRepositorios, rutaLocalDestinoFuentesModificados, rutaLocalCarpetaLogs;
 	private String anagramaSeleccionado;
 	private Map<String, LineaComandosBean> mapaAnagramas;
 	private List<String> listaActivos = new ArrayList<>();
 	
-	public PanelDespliegues() {
+	public PanelDespliegues() throws IOException {
+
+		Properties prop = new Properties();
+		prop.load(new FileReader("application.properties"));
+
+		rutaLocalRepositorios = prop.getProperty("rutaLocal.Repositorios");
+		rutaLocalDestinoFuentesModificados = fileUtil.crearDirectorio(prop.getProperty("rutaLocal.destinoFuentesModificados"));
+		rutaLocalCarpetaLogs = fileUtil.crearDirectorio(prop.getProperty("rutaLocal.carpetaLogs"));
 
         JLabel lblRutaDirectorio = new JLabel("* Ruta directorio local repositorios");
         lblRutaDirectorio.setBounds(15, 10, 235, 14);
 		add(lblRutaDirectorio);
         
         txtDirectorioLocalRepos = new JTextField();
-        txtDirectorioLocalRepos.setText("O:\\git_repositories");
+        txtDirectorioLocalRepos.setText(rutaLocalRepositorios);
         txtDirectorioLocalRepos.setName("txtRuta1COInfa");
         txtDirectorioLocalRepos.setBounds(15, 30, 250, 20);
         txtDirectorioLocalRepos.setEnabled(false);
         txtDirectorioLocalRepos.addMouseListener(new MouseAdapter() {
         	@Override
         	public void mouseClicked(MouseEvent e) {
-				txtDirectorioLocalRepos.setText(fileUtil.seleccionarDirectorioOFichero(JFileChooser.DIRECTORIES_ONLY));
+				txtDirectorioLocalRepos.setText(fileUtil.seleccionarDirectorioOFichero(JFileChooser.DIRECTORIES_ONLY, rutaLocalRepositorios));
 				txtDirectorioLocalRepos.setToolTipText(txtDirectorioLocalRepos.getText());
         	}
         });
@@ -82,14 +95,14 @@ public class PanelDespliegues extends JPanel {
 		add(lblRutaDestinoLocalFuentes);
         
         txtDirectorioActivosModificados = new JTextField();
-        txtDirectorioActivosModificados.setText("C:\\Users\\sergy\\OneDrive - Indra\\INDRA\\LEGADOS_OPERADORAS\\DRSs\\DRS 813357 - Circuitos - Resolución CNMC ORLA\\Despliegues\\PruebaAutomatizator");
+        txtDirectorioActivosModificados.setText(rutaLocalDestinoFuentesModificados);
         txtDirectorioActivosModificados.setName("txtRuta1COPrte");
         txtDirectorioActivosModificados.setBounds(15, 80, 250, 20);
         txtDirectorioActivosModificados.setEnabled(false);
         txtDirectorioActivosModificados.addMouseListener(new MouseAdapter() {
         	@Override
         	public void mouseClicked(MouseEvent e) {
-        		txtDirectorioActivosModificados.setText(fileUtil.seleccionarDirectorioOFichero(JFileChooser.DIRECTORIES_ONLY));
+        		txtDirectorioActivosModificados.setText(fileUtil.seleccionarDirectorioOFichero(JFileChooser.DIRECTORIES_ONLY, rutaLocalDestinoFuentesModificados));
         		txtDirectorioActivosModificados.setToolTipText(txtDirectorioActivosModificados.getText());
         	}
         });
@@ -184,7 +197,7 @@ public class PanelDespliegues extends JPanel {
 		txtRutaFicheroActivosModificados.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				txtRutaFicheroActivosModificados.setText(fileUtil.seleccionarDirectorioOFichero(JFileChooser.FILES_ONLY));
+				txtRutaFicheroActivosModificados.setText(fileUtil.seleccionarDirectorioOFichero(JFileChooser.FILES_ONLY, rutaLocalDestinoFuentesModificados));
 				txtRutaFicheroActivosModificados.setToolTipText(txtRutaFicheroActivosModificados.getText());
 			}
 		});
@@ -206,9 +219,15 @@ public class PanelDespliegues extends JPanel {
 		btnCopiarFicheros.addActionListener(e -> {
             int opcion = mostrarMensaje("¿Estás seguro de que deseas copiar los ficheros a la máquina?", JOptionPane.OK_CANCEL_OPTION);
             if (opcion == 0){
-				btnCompilarResult.setIcon(new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("images/warning.png"))));
-				btnDesplegarResult.setIcon(new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("images/warning.png"))));
-                ejecutarAccion(1);
+				String anagrama = anagramaSeleccionado.replace("-", "_");
+				if (mapaAnagramas.get(anagrama) != null) {
+					btnCompilarResult.setIcon(new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("images/warning.png"))));
+					btnDesplegarResult.setIcon(new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("images/warning.png"))));
+					ejecutarAccion(1);
+				}else {
+					btnCopiarResult.setIcon(new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("images/NOK.png"))));
+					mostrarMensaje("No se ha encontrado el anagrama en el archivo de propiedades", JOptionPane.ERROR_MESSAGE);
+				}
             }
         });
 		btnCopiarFicheros.setBounds(15, 174, 221, 33);
@@ -231,8 +250,14 @@ public class PanelDespliegues extends JPanel {
 		btnCompilar.addActionListener(e -> {
             int opcion = mostrarMensaje("¿Estás seguro de que deseas compilar los ficheros?", JOptionPane.OK_CANCEL_OPTION);
             if (opcion == 0){
-				btnDesplegarResult.setIcon(new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("images/warning.png"))));
-                ejecutarAccion(2);
+				String anagrama = anagramaSeleccionado.replace("-", "_");
+				if (mapaAnagramas.get(anagrama) != null) {
+					btnDesplegarResult.setIcon(new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("images/warning.png"))));
+					ejecutarAccion(2);
+				}else {
+					btnCompilarResult.setIcon(new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("images/NOK.png"))));
+					mostrarMensaje("No se ha encontrado el anagrama en el archivo de propiedades", JOptionPane.ERROR_MESSAGE);
+				}
             }
         });
 		btnCompilar.setBounds(15, 214, 109, 33);
@@ -256,7 +281,12 @@ public class PanelDespliegues extends JPanel {
             if (chkSSNN.isSelected() || chkPortal.isSelected()){
                 int opcion = mostrarMensaje("¿Estás seguro de que deseas desplegar y reiniciar los servidores?", JOptionPane.OK_CANCEL_OPTION);
 				if (opcion == 0){
-					ejecutarAccion(3);
+					String anagrama = anagramaSeleccionado.replace("-", "_");
+					if (mapaAnagramas.get(anagrama) != null) {
+						ejecutarAccion(3);
+					}else {
+						mostrarMensaje("No se ha encontrado el anagrama en el archivo de propiedades", JOptionPane.ERROR_MESSAGE);
+					}
 				}
             }else {
                 mostrarMensaje("Debe seleccionar al menos una opción de despliegue", JOptionPane.INFORMATION_MESSAGE);
@@ -284,7 +314,7 @@ public class PanelDespliegues extends JPanel {
             }
             panelConsola.setVisible(true);
         });
-		btnAbrirConsola.setBounds(956, 267, 137, 33);
+		btnAbrirConsola.setBounds(809, 267, 137, 33);
 		add(btnAbrirConsola);
 
 		tablaActivos = crearTabla();
@@ -338,6 +368,39 @@ public class PanelDespliegues extends JPanel {
         });
         btnComprobarPortal.setBounds(306, 214, 162, 33);
         add(btnComprobarPortal);
+        
+        JButton btnGuardarLog = new JButton("GUARDAR LOG");
+        btnGuardarLog.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+				if (panelConsola == null || panelConsola.textTA.getText().isEmpty()) {
+					mostrarMensaje("No hay información en la consola para guardar", JOptionPane.INFORMATION_MESSAGE);
+				}else {
+					try {
+						String anagrama = anagramaSeleccionado.replace("-", "_");
+						String nombreFichero = "log_" + anagrama + "_" + new Date().getTime() + ".txt";
+						File fichero = new File(rutaLocalCarpetaLogs + "/" + nombreFichero);
+						FileWriter fw = new FileWriter(fichero);
+						fw.write(panelConsola.textTA.getText());
+						fw.close();
+						mostrarMensaje("Log guardado correctamente en " + fichero.getAbsolutePath(), JOptionPane.INFORMATION_MESSAGE);
+					} catch (IOException ex) {
+						mostrarMensaje("Error al guardar el log - " + ex.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
+					}
+				}
+        	}
+        });
+        btnGuardarLog.setBounds(956, 267, 137, 33);
+        add(btnGuardarLog);
+        
+        JButton btnHistricoLogs = new JButton("HISTÓRICO LOGS");
+        btnHistricoLogs.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		panelHistoricoLogs = new PanelHistoricoLogs(appContext, rutaLocalCarpetaLogs);
+        		panelHistoricoLogs.setVisible(true);
+        	}
+        });
+        btnHistricoLogs.setBounds(956, 226, 137, 33);
+        add(btnHistricoLogs);
 
 		cargarComboRepositorios();
 
@@ -416,68 +479,60 @@ public class PanelDespliegues extends JPanel {
 	}
 
 	private void rellenarTabla() {
-		for(String activo: listaActivos) {
-			String estado = activo.split(" - ")[0];
-			String archivo = activo.split(" - ")[1];
+		if (listaActivos.isEmpty()) {
+			mostrarMensaje("No se han encontrado ficheros modificados para el anagrama seleccionado", JOptionPane.INFORMATION_MESSAGE);
+		}else {
+			for(String activo: listaActivos) {
+				String estado = activo.split(" - ")[0];
+				String archivo = activo.split(" - ")[1];
 
-			String[] fila = new String[2];
-			fila[0] = estado;
-			fila[1] = archivo;
-			((DefaultTableModel) tablaActivos.getModel()).addRow(fila);
+				String[] fila = new String[2];
+				fila[0] = estado;
+				fila[1] = archivo;
+				((DefaultTableModel) tablaActivos.getModel()).addRow(fila);
+			}
+			btnCopiarFicheros.setEnabled(!listaActivos.isEmpty());
+			btnCopiarFicheros.setEnabled(true);
+			lblNumFicheros.setText("Número de ficheros modificados: " + listaActivos.size());
 		}
-		btnCopiarFicheros.setEnabled(!listaActivos.isEmpty());
-		btnCopiarFicheros.setEnabled(true);
-		lblNumFicheros.setText("Número de ficheros modificados: " + listaActivos.size());
 	}
 
 	private void copiarFicherosAMaquina() {
 		String anagrama = anagramaSeleccionado.replace("-", "_");
-		if (mapaAnagramas.get(anagrama) != null) {
-			fuentesService.copiaFuentes(txtDirectorioLocalRepos.getText() + "/" + anagramaSeleccionado,
-					txtDirectorioActivosModificados.getText() + "/" + anagramaSeleccionado, listaActivos);
+		fuentesService.copiaFuentes(txtDirectorioLocalRepos.getText() + "/" + anagramaSeleccionado,
+				txtDirectorioActivosModificados.getText() + "/" + anagramaSeleccionado, listaActivos, panelConsola);
 
-	        try {
-				LineaComandosService lineaComandos = new LineaComandosService(mapaAnagramas.get(anagrama));
-	            lineaComandos.moverFicherosAMaquina(listaActivos, txtDirectorioActivosModificados.getText() + "/" + anagramaSeleccionado);
-				btnCompilar.setEnabled(true);
-				btnDesplegar.setEnabled(false);
-	        } catch (Exception e) {
-	            mostrarMensaje("Error al copiar los ficheros a la máquina - " + e.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
-	        }
-		}else {
-			mostrarMensaje("No se ha encontrado el anagrama en el archivo de propiedades", JOptionPane.ERROR_MESSAGE);
+		try {
+			LineaComandosService lineaComandos = new LineaComandosService(mapaAnagramas.get(anagrama), panelConsola);
+			lineaComandos.moverFicherosAMaquina(listaActivos, txtDirectorioActivosModificados.getText() + "/" + anagramaSeleccionado);
+			btnCompilar.setEnabled(true);
+			btnDesplegar.setEnabled(false);
+		} catch (Exception e) {
+			mostrarMensaje("Error al copiar los ficheros a la máquina - " + e.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 	
 	private void compilar() {
 		String anagrama = anagramaSeleccionado.replace("-", "_");
-		if (mapaAnagramas.get(anagrama) != null) {
-			try {
-				LineaComandosService lineaComandosService = new LineaComandosService(mapaAnagramas.get(anagrama));
-				lineaComandosService.compilar(txtDirectorioActivosModificados.getText() + "/" + anagramaSeleccionado);
-				btnDesplegar.setEnabled(true);
-			} catch (Exception e) {
-				mostrarMensaje("Error al compilar los ficheros - " + e.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
-			}
-		}else {
-			mostrarMensaje("No se ha encontrado el anagrama en el archivo de propiedades", JOptionPane.ERROR_MESSAGE);
-        }
+		try {
+			LineaComandosService lineaComandosService = new LineaComandosService(mapaAnagramas.get(anagrama), panelConsola);
+			lineaComandosService.compilar(txtDirectorioActivosModificados.getText() + "/" + anagramaSeleccionado);
+			btnDesplegar.setEnabled(true);
+		} catch (Exception e) {
+			mostrarMensaje("Error al compilar los ficheros - " + e.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
 	private void desplegarYReiniciar() {
 		String anagrama = anagramaSeleccionado.replace("-", "_");
-		if (mapaAnagramas.get(anagrama) != null) {
-			try {
-				LineaComandosService lineaComandosService = new LineaComandosService(mapaAnagramas.get(anagrama));
-				lineaComandosService.desplegarYReiniciar(chkSSNN.isSelected(), chkPortal.isSelected());
-				btnDesplegar.setEnabled(false);
-				btnCompilar.setEnabled(false);
-				btnCopiarFicheros.setEnabled(false);
-			} catch (Exception e) {
-				mostrarMensaje("Error al desplegar y reiniciar los servidores - " + e.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
-			}
-		}else {
-			mostrarMensaje("No se ha encontrado el anagrama en el archivo de propiedades", JOptionPane.ERROR_MESSAGE);
+		try {
+			LineaComandosService lineaComandosService = new LineaComandosService(mapaAnagramas.get(anagrama), panelConsola);
+			lineaComandosService.desplegarYReiniciar(chkSSNN.isSelected(), chkPortal.isSelected());
+			btnDesplegar.setEnabled(false);
+			btnCompilar.setEnabled(false);
+			btnCopiarFicheros.setEnabled(false);
+		} catch (Exception e) {
+			mostrarMensaje("Error al desplegar y reiniciar los servidores - " + e.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -562,16 +617,16 @@ public class PanelDespliegues extends JPanel {
 		if (panelConsola == null) {
 			panelConsola = new PanelConsola(appContext);
 		}
-		PanelConsola.closeBtn.setEnabled(false);
-		PanelConsola.addText("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+		panelConsola.closeBtn.setEnabled(false);
+		panelConsola.addText("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 		String mensaje = switch (action) {
-            case 1 -> "\n----------------------------------------------------------------------------------------   Empieza el proceso de copia de ficheros a la máquina   ----------------------------------------------------------------------------------------";
-            case 2 -> "\n----------------------------------------------------------------------------------------     Empieza el proceso de compilación de los ficheros     ---------------------------------------------------------------------------------------";
-            case 3 -> "\n---------------------------------------------------------------------------------------- Empieza el proceso de despliegue y reinicio de servidores ---------------------------------------------------------------------------------------";
+            case 1 -> "\n----------------------------------------------------------------------------------------   " + Constantes.INICIO_COPIA_FICHEROS + "   ----------------------------------------------------------------------------------------";
+            case 2 -> "\n----------------------------------------------------------------------------------------     " + Constantes.INICIO_COMPILACION + "     ---------------------------------------------------------------------------------------";
+            case 3 -> "\n---------------------------------------------------------------------------------------- " + Constantes.INICIO_DESPLIEGUE + " ---------------------------------------------------------------------------------------";
             default -> "";
         };
-        PanelConsola.addText(mensaje);
-		PanelConsola.addText("\n-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
+		panelConsola.addText(mensaje);
+		panelConsola.addText("\n-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
 
 		SwingWorker worker = new SwingWorker() {
 			public String doInBackground()  {
@@ -601,10 +656,10 @@ public class PanelDespliegues extends JPanel {
 				return null;
 			}
 			public void done() {
-				PanelConsola.addText("\n------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-				PanelConsola.addText("\n--------------------------------------------------------------------------------------------------                   Proceso finalizado                      -------------------------------------------------------------------------------------------------");
-				PanelConsola.addText("\n------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
-				PanelConsola.closeBtn.setEnabled(true);
+				panelConsola.addText("\n------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+				panelConsola.addText("\n--------------------------------------------------------------------------------------------------                   Proceso finalizado                      -------------------------------------------------------------------------------------------------");
+				panelConsola.addText("\n------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
+				panelConsola.closeBtn.setEnabled(true);
 				btnAbrirConsola.setEnabled(true);
 			}
 		};
