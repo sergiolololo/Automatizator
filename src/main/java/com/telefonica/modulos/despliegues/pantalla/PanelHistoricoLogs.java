@@ -30,7 +30,7 @@ public class PanelHistoricoLogs extends JDialog {
 		super(appContext.getBean(PantallaPrincipal.class), true);
 
 		setTitle("Histórico de logs");
-		setSize(986, 595);
+		setSize(771, 411);
 		setResizable(true);
 		
 		JPanel pane = new JPanel();

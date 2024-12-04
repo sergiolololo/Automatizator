@@ -220,7 +220,6 @@ public class LineaComandosService {
     }
 
     private void pintarTrazas() throws IOException, InterruptedException {
-        int exitStatus;
         InputStream in = channelExec.getInputStream();
         byte[] tmp = new byte[1024];
         while(true){
@@ -232,7 +231,16 @@ public class LineaComandosService {
                 panelConsola.addText(text);
             }
             if(channelExec.isClosed()){
-                exitStatus = channelExec.getExitStatus();
+                int exitStatus = channelExec.getExitStatus();
+                InputStream error = channelExec.getErrStream();
+                if (error.available() > 0) {
+                    byte[] errorTmp = new byte[1024];
+                    int j = error.read(errorTmp, 0, 1024);
+                    if (j < 0) break;
+                    String errorText = new String(errorTmp, 0, j);
+                    System.out.print(errorText);
+                    panelConsola.addText(errorText);
+                }
                 System.out.println("Before Disconnected Here exit-status: " + exitStatus);
                 channelExec.disconnect();
                 System.out.println("Disconnected Here exit-status: " + exitStatus);

@@ -1,11 +1,7 @@
 package com.telefonica.modulos.despliegues.utils;
 
-import org.apache.poi.ss.usermodel.Workbook;
-
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class FileUtil {
@@ -23,7 +19,7 @@ public class FileUtil {
 	    return directorio;
 	}
 	
-	public void guardarFichero(String nombre, Workbook workbook, String directorio) throws IOException {
+	/*public void guardarFichero(String nombre, Workbook workbook, String directorio) throws IOException {
 		JFileChooser chooser = new JFileChooser();
 	    chooser.setCurrentDirectory(new File(directorio));
 	    chooser.setAcceptAllFileFilterUsed(false);
@@ -38,7 +34,7 @@ public class FileUtil {
 	        fileOut.close();
 	        workbook.close();
 	    }
-	}
+	}*/
 
 	public String crearDirectorio(String directorio) {
 		try {

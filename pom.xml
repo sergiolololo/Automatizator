@@ -43,11 +43,6 @@
         </dependency>
 		
 		<!-- Dependencias propias -->
-		<dependency>
-	    <groupId>org.openjfx</groupId>
-	    <artifactId>javafx-base</artifactId>
-	    <version>22-ea+16</version>
-	  </dependency>
 	  <dependency>
 	    <groupId>commons-io</groupId>
 	    <artifactId>commons-io</artifactId>
@@ -57,59 +52,16 @@
 	    <groupId>org.apache.commons</groupId>
 	    <artifactId>commons-lang3</artifactId>
 	  </dependency>
-	  <dependency>
-	    <groupId>com.fasterxml.jackson.core</groupId>
-	    <artifactId>jackson-core</artifactId>
-	  </dependency>
-	  <dependency>
-	    <groupId>com.fasterxml.jackson.core</groupId>
-	    <artifactId>jackson-databind</artifactId>
-	  </dependency>
-	  <dependency>
-	    <groupId>com.jtattoo</groupId>
-	    <artifactId>JTattoo</artifactId>
-	    <version>1.6.13</version>
-	  </dependency>
-	  <dependency>
-	    <groupId>com.github.lgooddatepicker</groupId>
-	    <artifactId>LGoodDatePicker</artifactId>
-	    <version>11.2.1</version>
-	  </dependency>
-	  <dependency>
-	    <groupId>org.apache.maven</groupId>
-	    <artifactId>maven-model</artifactId>
-	    <version>3.9.6</version>
-	  </dependency>
-	  <dependency>
-	    <groupId>org.apache.poi</groupId>
-	    <artifactId>poi</artifactId>
-	    <version>5.2.5</version>
-	  </dependency>
-	  <dependency>
-	    <groupId>org.apache.poi</groupId>
-	    <artifactId>poi-ooxml</artifactId>
-	    <version>5.2.5</version>
-	  </dependency>
-	  <dependency>
-	    <groupId>org.apache.logging.log4j</groupId>
-	    <artifactId>log4j-core</artifactId>
-	  </dependency>
-	  <dependency>
-		<groupId>com.github.javaparser</groupId>
-		<artifactId>javaparser-symbol-solver-core</artifactId>
-		<version>3.25.5</version>
-		</dependency>
 		<dependency>
-			<groupId>com.oracle.database.jdbc</groupId>
-			<artifactId>ojdbc10</artifactId>
-			<version>19.21.0.0</version>
+			<groupId>com.jtattoo</groupId>
+			<artifactId>JTattoo</artifactId>
+			<version>1.6.13</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
 			<version>6.9.0.202403050737-r</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.github.mwiede</groupId>
 			<artifactId>jsch</artifactId>

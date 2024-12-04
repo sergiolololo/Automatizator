@@ -3,12 +3,10 @@ package com.telefonica.modulos.despliegues.pantalla;
 import com.telefonica.modulos.despliegues.beans.LineaComandosBean;
 import com.telefonica.modulos.despliegues.beans.MaquinaBean;
 import com.telefonica.modulos.despliegues.service.FuentesService;
-import com.telefonica.modulos.despliegues.service.GitService;
 import com.telefonica.modulos.despliegues.service.LineaComandosService;
 import com.telefonica.modulos.despliegues.utils.Constantes;
 import com.telefonica.modulos.despliegues.utils.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -21,12 +19,15 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.border.BevelBorder;
 import java.util.List;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @SuppressWarnings({"rawtypes" })
 @Component
@@ -43,8 +44,7 @@ public class PanelDespliegues extends JPanel {
 	private final JTextField txtDirectorioActivosModificados;
 	private final JTextField txtPrimerCommit, txtUltimoCommit, txtRutaFicheroActivosModificados;
 
-	private final JButton btnCopiarFicheros, btnCompilar, btnDesplegar, btnAbrirConsola;
-	private JButton btnCopiarResult;
+    private JButton btnCopiarResult;
 	private JButton btnCompilarResult;
 	private JButton btnDesplegarResult;
 
@@ -214,7 +214,7 @@ public class PanelDespliegues extends JPanel {
 		});
 		panelImpactoDesdeFichero.add(btnCargar);
 
-		btnCopiarFicheros = new JButton("1 - COPIAR FICHEROS A MÁQUINA");
+        JButton btnCopiarFicheros = new JButton("1 - COPIAR FICHEROS A MÁQUINA");
 		btnCopiarFicheros.setHorizontalAlignment(SwingConstants.LEFT);
 		btnCopiarFicheros.addActionListener(e -> {
             int opcion = mostrarMensaje("¿Estás seguro de que deseas copiar los ficheros a la máquina?", JOptionPane.OK_CANCEL_OPTION);
@@ -245,7 +245,7 @@ public class PanelDespliegues extends JPanel {
 		btnCopiarResult.setBounds(240, 174, 40, 33);
 		add(btnCopiarResult);
 
-		btnCompilar = new JButton("2 - COMPILAR");
+        JButton btnCompilar = new JButton("2 - COMPILAR");
 		btnCompilar.setHorizontalAlignment(SwingConstants.LEFT);
 		btnCompilar.addActionListener(e -> {
             int opcion = mostrarMensaje("¿Estás seguro de que deseas compilar los ficheros?", JOptionPane.OK_CANCEL_OPTION);
@@ -275,7 +275,7 @@ public class PanelDespliegues extends JPanel {
 		btnCompilarResult.setBounds(130, 214, 40, 33);
 		add(btnCompilarResult);
 
-		btnDesplegar = new JButton("3 - DESPLEGAR Y REINICIAR SERVIDORES");
+        JButton btnDesplegar = new JButton("3 - DESPLEGAR Y REINICIAR SERVIDORES");
 		btnDesplegar.setHorizontalAlignment(SwingConstants.LEFT);
 		btnDesplegar.addActionListener(e -> {
             if (chkSSNN.isSelected() || chkPortal.isSelected()){
@@ -307,7 +307,7 @@ public class PanelDespliegues extends JPanel {
 		btnDesplegarResult.setBounds(285, 254, 40, 33);
 		add(btnDesplegarResult);
 
-		btnAbrirConsola = new JButton("ABRIR CONSOLA");
+        JButton btnAbrirConsola = new JButton("ABRIR CONSOLA");
 		btnAbrirConsola.addActionListener(e -> {
             if (panelConsola == null) {
                 panelConsola = new PanelConsola(appContext);
@@ -370,34 +370,30 @@ public class PanelDespliegues extends JPanel {
         add(btnComprobarPortal);
         
         JButton btnGuardarLog = new JButton("GUARDAR LOG");
-        btnGuardarLog.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-				if (panelConsola == null || panelConsola.textTA.getText().isEmpty()) {
-					mostrarMensaje("No hay información en la consola para guardar", JOptionPane.INFORMATION_MESSAGE);
-				}else {
-					try {
-						String anagrama = anagramaSeleccionado.replace("-", "_");
-						String nombreFichero = "log_" + anagrama + "_" + new Date().getTime() + ".txt";
-						File fichero = new File(rutaLocalCarpetaLogs + "/" + nombreFichero);
-						FileWriter fw = new FileWriter(fichero);
-						fw.write(panelConsola.textTA.getText());
-						fw.close();
-						mostrarMensaje("Log guardado correctamente en " + fichero.getAbsolutePath(), JOptionPane.INFORMATION_MESSAGE);
-					} catch (IOException ex) {
-						mostrarMensaje("Error al guardar el log - " + ex.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
-					}
-				}
-        	}
+        btnGuardarLog.addActionListener(e -> {
+            if (panelConsola == null || panelConsola.textTA.getText().isEmpty()) {
+                mostrarMensaje("No hay información en la consola para guardar", JOptionPane.INFORMATION_MESSAGE);
+            }else {
+                try {
+                    String anagrama = anagramaSeleccionado.replace("-", "_");
+                    String nombreFichero = "log_" + anagrama + "_" + new Date().getTime() + ".txt";
+                    File fichero = new File(rutaLocalCarpetaLogs + "/" + nombreFichero);
+                    FileWriter fw = new FileWriter(fichero);
+                    fw.write(panelConsola.textTA.getText());
+                    fw.close();
+                    mostrarMensaje("Log guardado correctamente en " + fichero.getAbsolutePath(), JOptionPane.INFORMATION_MESSAGE);
+                } catch (IOException ex) {
+                    mostrarMensaje("Error al guardar el log - " + ex.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
+                }
+            }
         });
         btnGuardarLog.setBounds(956, 267, 137, 33);
         add(btnGuardarLog);
         
         JButton btnHistricoLogs = new JButton("HISTÓRICO LOGS");
-        btnHistricoLogs.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		panelHistoricoLogs = new PanelHistoricoLogs(appContext, rutaLocalCarpetaLogs);
-        		panelHistoricoLogs.setVisible(true);
-        	}
+        btnHistricoLogs.addActionListener(e -> {
+            panelHistoricoLogs = new PanelHistoricoLogs(appContext, rutaLocalCarpetaLogs);
+            panelHistoricoLogs.setVisible(true);
         });
         btnHistricoLogs.setBounds(956, 226, 137, 33);
         add(btnHistricoLogs);
@@ -453,17 +449,18 @@ public class PanelDespliegues extends JPanel {
 	}
 
 	private void cargarComboRepositorios(){
-		File file = new File("O:\\git_repositories\\");
-		for(File file2: Objects.requireNonNull(file.listFiles())) {
-			if(file2.isDirectory()) {
-				cmbAnagramas.addItem(file2.getName());
-			}
+		try (Stream<Path> paths = Files.list(Paths.get("O:\\git_repositories"))) {
+			paths.filter(Files::isDirectory)
+					.map(Path::getFileName)
+					.map(Path::toString)
+					.filter(name -> name.contains("-REPO-DES"))
+					.forEach(cmbAnagramas::addItem);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
 	private void identificarFicheros(int opcion) {
-		btnDesplegar.setEnabled(false);
-		btnCompilar.setEnabled(false);
 		clearTable((DefaultTableModel) tablaActivos.getModel());
 		try {
 			if (opcion == 1) { // desde GIT
@@ -491,8 +488,6 @@ public class PanelDespliegues extends JPanel {
 				fila[1] = archivo;
 				((DefaultTableModel) tablaActivos.getModel()).addRow(fila);
 			}
-			btnCopiarFicheros.setEnabled(!listaActivos.isEmpty());
-			btnCopiarFicheros.setEnabled(true);
 			lblNumFicheros.setText("Número de ficheros modificados: " + listaActivos.size());
 		}
 	}
@@ -505,8 +500,6 @@ public class PanelDespliegues extends JPanel {
 		try {
 			LineaComandosService lineaComandos = new LineaComandosService(mapaAnagramas.get(anagrama), panelConsola);
 			lineaComandos.moverFicherosAMaquina(listaActivos, txtDirectorioActivosModificados.getText() + "/" + anagramaSeleccionado);
-			btnCompilar.setEnabled(true);
-			btnDesplegar.setEnabled(false);
 		} catch (Exception e) {
 			mostrarMensaje("Error al copiar los ficheros a la máquina - " + e.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
 		}
@@ -517,7 +510,6 @@ public class PanelDespliegues extends JPanel {
 		try {
 			LineaComandosService lineaComandosService = new LineaComandosService(mapaAnagramas.get(anagrama), panelConsola);
 			lineaComandosService.compilar(txtDirectorioActivosModificados.getText() + "/" + anagramaSeleccionado);
-			btnDesplegar.setEnabled(true);
 		} catch (Exception e) {
 			mostrarMensaje("Error al compilar los ficheros - " + e.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
 		}
@@ -528,9 +520,6 @@ public class PanelDespliegues extends JPanel {
 		try {
 			LineaComandosService lineaComandosService = new LineaComandosService(mapaAnagramas.get(anagrama), panelConsola);
 			lineaComandosService.desplegarYReiniciar(chkSSNN.isSelected(), chkPortal.isSelected());
-			btnDesplegar.setEnabled(false);
-			btnCompilar.setEnabled(false);
-			btnCopiarFicheros.setEnabled(false);
 		} catch (Exception e) {
 			mostrarMensaje("Error al desplegar y reiniciar los servidores - " + e.getLocalizedMessage(), JOptionPane.ERROR_MESSAGE);
 		}
@@ -562,10 +551,9 @@ public class PanelDespliegues extends JPanel {
 	}
 
 	private void clearTable(DefaultTableModel model) {
-        int rowCount = model.getRowCount();
-        for (int i = rowCount - 1; i >= 0; i--) {
-            model.removeRow(i);
-        }
+		IntStream.range(0, model.getRowCount())
+				.map(i -> model.getRowCount() - 1 - i)
+				.forEach(model::removeRow);
     }
 
 	private int mostrarMensaje(String mensaje, int opcion) {
@@ -660,7 +648,6 @@ public class PanelDespliegues extends JPanel {
 				panelConsola.addText("\n--------------------------------------------------------------------------------------------------                   Proceso finalizado                      -------------------------------------------------------------------------------------------------");
 				panelConsola.addText("\n------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\n");
 				panelConsola.closeBtn.setEnabled(true);
-				btnAbrirConsola.setEnabled(true);
 			}
 		};
 		worker.execute();
