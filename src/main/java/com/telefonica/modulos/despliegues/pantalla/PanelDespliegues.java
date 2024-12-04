@@ -146,7 +146,6 @@ public class PanelDespliegues extends JPanel {
 		panelImpactoDesdeGIT.add(lblHashPrimerCommit);
 
 		txtPrimerCommit = new JTextField();
-		txtPrimerCommit.setText("ff90a995bc8f9a67cabbb863775a0f137485b9cc");
 		txtPrimerCommit.setName("txtRutaficheroDependencias");
 		txtPrimerCommit.setBounds(34, 111, 221, 20);
 		txtPrimerCommit.setColumns(10);
@@ -157,7 +156,6 @@ public class PanelDespliegues extends JPanel {
 		panelImpactoDesdeGIT.add(lblHashUltCommit);
 
 		txtUltimoCommit = new JTextField();
-		txtUltimoCommit.setText("cf0dd1d1ed887df852b0291bfc0ef1f539f7a376");
 		txtUltimoCommit.setName("txtPesp");
 		txtUltimoCommit.setBounds(34, 61, 221, 20);
 		txtUltimoCommit.setColumns(10);
