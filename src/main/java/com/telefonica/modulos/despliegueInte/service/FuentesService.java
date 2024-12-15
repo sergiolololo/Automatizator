@@ -1,6 +1,6 @@
-package com.telefonica.modulos.despliegues.service;
+package com.telefonica.modulos.despliegueInte.service;
 
-import com.telefonica.modulos.despliegues.pantalla.PanelConsola;
+import com.telefonica.modulos.despliegueInte.pantalla.PanelConsola;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,18 +16,20 @@ public class FuentesService {
 
     public void copiaFuentes(String directorioOrigen, String directorioDestino, List<String> listaActivos, PanelConsola panelConsola) {
         for (String activoAux : listaActivos) {
-            String activo = activoAux.replace("Modificado - ", "").replace("Nuevo - ", "");
-            String directory = directorioDestino + "/" + activo.substring(0, activo.lastIndexOf("/"));
-            File file = new File(directory);
-            if(!file.exists()) {
-                file.mkdirs();
-            }
-            try {
-                Files.copy(new File(directorioOrigen + "/" + activo).toPath(),
-                        new File(directorioDestino + "/" + activo).toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("Copiado en: " + directorioDestino + "/" + activo);
-            } catch (IOException e) {
-                panelConsola.addText("ERROR - " + e.getMessage() + "\n");
+            if(!activoAux.contains("Eliminado - ")) {
+                String activo = activoAux.replace("Modificado - ", "").replace("Nuevo - ", "");
+                String directory = directorioDestino + "/" + activo.substring(0, activo.lastIndexOf("/"));
+                File file = new File(directory);
+                if(!file.exists()) {
+                    file.mkdirs();
+                }
+                try {
+                    Files.copy(new File(directorioOrigen + "/" + activo).toPath(),
+                            new File(directorioDestino + "/" + activo).toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    System.out.println("Copiado en: " + directorioDestino + "/" + activo);
+                } catch (IOException e) {
+                    panelConsola.addText("ERROR - " + e.getMessage() + "\n");
+                }
             }
         }
     }

@@ -1,18 +1,21 @@
-package com.telefonica.modulos.despliegues.service;
+package com.telefonica.modulos.despliegueCerti.service;
 
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
-import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class GitService {
+public class GitServiceCerti {
 
     public List<String> getCommitComparison(String path, String primerCommit, String ultimoCommit) throws Exception {
     List<String> files = new ArrayList<>();

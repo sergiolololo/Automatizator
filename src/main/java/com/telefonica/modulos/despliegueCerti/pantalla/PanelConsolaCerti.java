@@ -1,4 +1,4 @@
-package com.telefonica.modulos.despliegues.pantalla;
+package com.telefonica.modulos.despliegueCerti.pantalla;
 
 import com.telefonica.interfaz.PantallaPrincipal;
 import org.springframework.context.ApplicationContext;
@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.Serial;
 
-public class PanelConsola extends JDialog {
+public class PanelConsolaCerti extends JDialog {
 
 	@Serial
 	private static final long serialVersionUID = 1L;
@@ -17,7 +17,7 @@ public class PanelConsola extends JDialog {
 	public JButton closeBtn;
 	private final JCheckBox lineWrapChk;
 
-	public PanelConsola(ApplicationContext appContext) {
+	public PanelConsolaCerti(ApplicationContext appContext) {
 		super(appContext.getBean(PantallaPrincipal.class), true);
 
 		setTitle("Consola de procesamiento");

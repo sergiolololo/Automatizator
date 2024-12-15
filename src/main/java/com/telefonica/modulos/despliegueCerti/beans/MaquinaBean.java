@@ -1,4 +1,4 @@
-package com.telefonica.modulos.despliegues.beans;
+package com.telefonica.modulos.despliegueCerti.beans;
 
 public class MaquinaBean {
     private String host;

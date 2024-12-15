@@ -1,8 +1,8 @@
-package com.telefonica.modulos.despliegues.service;
+package com.telefonica.modulos.despliegueInte.service;
 
 import com.jcraft.jsch.*;
-import com.telefonica.modulos.despliegues.beans.LineaComandosBean;
-import com.telefonica.modulos.despliegues.pantalla.PanelConsola;
+import com.telefonica.modulos.despliegueInte.beans.LineaComandosBean;
+import com.telefonica.modulos.despliegueInte.pantalla.PanelConsola;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,15 +51,27 @@ public class LineaComandosService {
             crearConexionSFTP(lineaComandosBean.getMaquinaTramitador().getHost(), lineaComandosBean.getMaquinaTramitador().getUser(),
                     lineaComandosBean.getMaquinaTramitador().getPassword());
             for (String activoAux : listaActivos) {
-                String activo = activoAux.replace("Modificado - ", "").replace("Nuevo - ", "");
-                String rutaActivoOrigen = directorioLocalFicheros + "/" + activo;
-                String rutaDestino = lineaComandosBean.getDirectorioConstruccion() + "/" + activo.substring(0, activo.lastIndexOf("/"));
+                if (activoAux.contains("Eliminado")) {
+                    String activo = activoAux.replace("Eliminado - ", "");
+                    String rutaActivoOrigen = lineaComandosBean.getDirectorioConstruccion() + "/" + activo;
+                    try{
+                        channelSftp.rm(rutaActivoOrigen);
+                        System.out.println("Fichero eliminado: " + lineaComandosBean.getDirectorioConstruccion() + "/" + activo);
+                        panelConsola.addText("Fichero eliminado: " + lineaComandosBean.getDirectorioConstruccion() + "/" + activo + "\n");
+                    }catch(Exception e){
+                        panelConsola.addText("Error al eliminar fichero, posiblemente se haya eliminado previamente: " + rutaActivoOrigen + "\n");
+                    }
+                }else{
+                    String activo = activoAux.replace("Modificado - ", "").replace("Nuevo - ", "");
+                    String rutaActivoOrigen = directorioLocalFicheros + "/" + activo;
+                    String rutaDestino = lineaComandosBean.getDirectorioConstruccion() + "/" + activo.substring(0, activo.lastIndexOf("/"));
 
-                crearDirectorioEnMaquinaSiNoExiste(rutaDestino);
+                    crearDirectorioEnMaquinaSiNoExiste(rutaDestino);
 
-                channelSftp.put(rutaActivoOrigen, rutaDestino);
-                System.out.println("Fichero añadido: " + lineaComandosBean.getDirectorioConstruccion() + "/" + activo);
-                panelConsola.addText("Fichero añadido: " + lineaComandosBean.getDirectorioConstruccion() + "/" + activo + "\n");
+                    channelSftp.put(rutaActivoOrigen, rutaDestino);
+                    System.out.println("Fichero añadido: " + lineaComandosBean.getDirectorioConstruccion() + "/" + activo);
+                    panelConsola.addText("Fichero añadido: " + lineaComandosBean.getDirectorioConstruccion() + "/" + activo + "\n");
+                }
             }
         } catch (Exception e) {
             panelConsola.addText("ERROR - " + e.getMessage() + "\n");
@@ -86,13 +98,11 @@ public class LineaComandosService {
                         directorio.append(folder).append("/");
                     }
                     catch ( SftpException e ) {
-                        if(directorio.toString().contains("PRUEBA_DESPLIEGUE_AUTOMATIZADO")){
-                            channelSftp.mkdir(folder);
-                            channelSftp.cd(folder);
-                            directorio.append(folder).append("/");
-                            System.out.println("Directorio creado: " + directorio);
-                            panelConsola.addText("Directorio creado: " + directorio + "\n");
-                        }
+                        channelSftp.mkdir(folder);
+                        channelSftp.cd(folder);
+                        directorio.append(folder).append("/");
+                        System.out.println("Directorio creado: " + directorio);
+                        panelConsola.addText("Directorio creado: " + directorio + "\n");
                     }
                 }
             }

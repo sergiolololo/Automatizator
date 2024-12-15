@@ -1,4 +1,4 @@
-package com.telefonica.modulos.despliegues.utils;
+package com.telefonica.modulos.despliegueCerti.utils;
 
 import javax.swing.*;
 import java.io.File;

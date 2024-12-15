@@ -1,7 +1,7 @@
-package com.telefonica.modulos.despliegues.pantalla;
+package com.telefonica.modulos.despliegueInte.pantalla;
 
 import com.telefonica.interfaz.PantallaPrincipal;
-import com.telefonica.modulos.despliegues.utils.Constantes;
+import com.telefonica.modulos.despliegueInte.utils.Constantes;
 import org.springframework.context.ApplicationContext;
 
 import javax.swing.*;

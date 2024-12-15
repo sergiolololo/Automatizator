@@ -1,4 +1,4 @@
-package com.telefonica.modulos.despliegues.utils;
+package com.telefonica.modulos.despliegueInte.utils;
 
 public class Constantes {
     public static final String INICIO_COPIA_FICHEROS = "Empieza el proceso de copia de ficheros a la máquina";

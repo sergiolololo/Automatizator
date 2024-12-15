@@ -1,4 +1,4 @@
-package com.telefonica.modulos.despliegues.enumm;
+package com.telefonica.modulos.despliegueInte.enumm;
 
 public enum ConexionesMaquinasEnum {
 	V0_REPO_DES(

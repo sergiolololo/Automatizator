@@ -1,9 +1,9 @@
 package com.telefonica.interfaz;
 
-import com.telefonica.modulos.despliegues.pantalla.PanelDespliegues;
-import com.telefonica.modulos.despliegues.utils.BackgroundPanel;
+import com.telefonica.modulos.despliegueCerti.pantalla.PanelDesplieguesCerti;
+import com.telefonica.modulos.despliegueInte.pantalla.PanelDespliegues;
+import com.telefonica.modulos.despliegueInte.utils.BackgroundPanel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -21,6 +21,8 @@ public class PantallaPrincipal extends JFrame {
 
 	@Autowired
 	private PanelDespliegues panelDespliegues;
+	@Autowired
+	private PanelDesplieguesCerti panelDesplieguesCerti;
 	
 	private JPanel contentPane;
 
@@ -49,7 +51,7 @@ public class PantallaPrincipal extends JFrame {
         JMenu menu = new JMenu("Menú");
 		menuBar.add(menu);
 
-		JMenuItem menuDespliegues = new JMenuItem("Despliegues");
+		JMenuItem menuDespliegues = new JMenuItem("Despliegues integración");
 		menuDespliegues.addActionListener(evt -> {
 			setShape(new RoundRectangle2D.Double(0, 0, 1120, 750, 30, 30));
 			setSize(1120, 750);
@@ -59,6 +61,17 @@ public class PantallaPrincipal extends JFrame {
 			c.show(contentPane, "panelDespliegues");
 		});
 		menu.add(menuDespliegues);
+
+		JMenuItem menuDesplieguesCerti = new JMenuItem("Despliegues certificación");
+		menuDesplieguesCerti.addActionListener(evt -> {
+			setShape(new RoundRectangle2D.Double(0, 0, 1120, 750, 30, 30));
+			setSize(1120, 750);
+			setResizable(false);
+			setLocationRelativeTo(null);
+			CardLayout c = (CardLayout)(contentPane.getLayout());
+			c.show(contentPane, "panelDesplieguesCerti");
+		});
+		menu.add(menuDesplieguesCerti);
 		
 		getContentPane().setLayout(new GridLayout(0, 1, 0, 0));
 		
@@ -69,6 +82,7 @@ public class PantallaPrincipal extends JFrame {
 		BackgroundPanel panelVacio = new BackgroundPanel("images/automation2.png");
 		contentPane.add(panelVacio, "panelVacio");
 		contentPane.add(panelDespliegues, "panelDespliegues");
+		contentPane.add(panelDesplieguesCerti, "panelDesplieguesCerti");
 		
 		changeFont(this, new Font("Arial", Font.PLAIN, 12));
 		changeFontMenu(menu, new Font("Arial", Font.BOLD, 16));

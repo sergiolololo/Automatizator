@@ -1,11 +1,11 @@
-package com.telefonica.modulos.despliegues.pantalla;
+package com.telefonica.modulos.despliegueInte.pantalla;
 
-import com.telefonica.modulos.despliegues.beans.LineaComandosBean;
-import com.telefonica.modulos.despliegues.beans.MaquinaBean;
-import com.telefonica.modulos.despliegues.service.FuentesService;
-import com.telefonica.modulos.despliegues.service.LineaComandosService;
-import com.telefonica.modulos.despliegues.utils.Constantes;
-import com.telefonica.modulos.despliegues.utils.FileUtil;
+import com.telefonica.modulos.despliegueInte.beans.LineaComandosBean;
+import com.telefonica.modulos.despliegueInte.beans.MaquinaBean;
+import com.telefonica.modulos.despliegueInte.service.FuentesService;
+import com.telefonica.modulos.despliegueInte.service.LineaComandosService;
+import com.telefonica.modulos.despliegueInte.utils.Constantes;
+import com.telefonica.modulos.despliegueInte.utils.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -549,9 +549,10 @@ public class PanelDespliegues extends JPanel {
 	}
 
 	private void clearTable(DefaultTableModel model) {
-		IntStream.range(0, model.getRowCount())
-				.map(i -> model.getRowCount() - 1 - i)
-				.forEach(model::removeRow);
+		// Clear the table
+		for (int i = model.getRowCount() - 1; i >= 0; i--) {
+			model.removeRow(i);
+		}
     }
 
 	private int mostrarMensaje(String mensaje, int opcion) {
